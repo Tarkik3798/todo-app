@@ -3,24 +3,33 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { logout } from '../store/authSlice';
-import { Todo } from '../store/todosSlice';
+import { Todo, removeTodo } from '../store/todosSlice';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAdd, faEdit, faRemove, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 const Dashboard: React.FC = React.memo(() => {
   const todos = useSelector((state: RootState) => state.todos.todos);
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
   const { username } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
-  const history = useNavigate();
+  const navigate = useNavigate();
 
   const handleLogout = useCallback(() => {
     dispatch(logout());
-    history('/');
-  }, [dispatch, history]);
+    navigate('/');
+  }, [dispatch, navigate]);
 
   const handleEditTodo = useCallback((id: string) => {
-    history(`/edit/${id}`);
-  }, [history]);
+    navigate(`/edit/${id}`);
+  }, [navigate]);
 
+  const handleRemove = useCallback(
+    (todoId: string) => {
+      dispatch(removeTodo(todoId));
+      navigate('/dashboard');
+    },
+    [dispatch, navigate]
+  );
   const filteredTodos = React.useMemo(
     () => todos.filter((todo: Todo) => todo.userId === username),
     [todos, username]
@@ -29,7 +38,7 @@ const Dashboard: React.FC = React.memo(() => {
   return (
     <div className="container">
       <div className="row justify-content-center">
-        <div className="col-md-8">
+        <div className="col-md-6">
           <div className="card mt-5">
             <div className="card-body">
               <h1 className="card-title text-center">Dashboard</h1>
@@ -52,7 +61,8 @@ const Dashboard: React.FC = React.memo(() => {
               )}
               {isAuthenticated && (
                 <div className="text-center mb-3">
-                  <Link to="/add" className="btn btn-primary">
+                  <Link to="/add" className="btn btn-outline-primary w-100">
+                    <FontAwesomeIcon className='mx-1' icon={faAdd} />
                     Add Todo
                   </Link>
                 </div>
@@ -66,10 +76,18 @@ const Dashboard: React.FC = React.memo(() => {
                           {todo.title}
                           <button
                             type="button"
-                            className="btn btn-sm btn-primary float-end"
+                            className="btn btn-sm btn-outline-primary float-end"
                             onClick={() => handleEditTodo(todo.id)}
                           >
-                            Edit
+                            <FontAwesomeIcon icon={faEdit} />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger float-end mx-2"
+                            onClick={() => handleRemove(todo.id)}
+                          >
+                            <FontAwesomeIcon icon={faTrash} />
                           </button>
                         </li>
                       ))}

@@ -73,7 +73,7 @@ const Login: React.FC = React.memo(() => {
                   </div>
                 </div>
                 <div className="text-center">
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-outline-primary">
                     Login
                   </button>
                 </div>

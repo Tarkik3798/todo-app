@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { addTodo, editTodo, Todo } from '../store/todosSlice';
 import { RootState } from '../store/store';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faAdd } from '@fortawesome/free-solid-svg-icons';
 
 const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
   value,
@@ -10,6 +12,7 @@ const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }>
 }) => (
   <div>
     <input
+      autoFocus
       type="text"
       className="form-control"
       placeholder="Title"
@@ -117,7 +120,7 @@ const TodoForm: React.FC = () => {
                   {descriptionError && <div className="text-danger">{descriptionError}</div>}
                 </div>
                 <div className="text-center">
-                  <button type="submit" className="btn btn-primary">
+                  <button type="submit" className="btn btn-outline-primary w-100">
                     {id ? 'Update' : 'Add'}
                   </button>
                 </div>
@@ -131,4 +134,3 @@ const TodoForm: React.FC = () => {
 };
 
 export default TodoForm;
-  
