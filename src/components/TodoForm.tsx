@@ -1,42 +1,78 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate } from 'react-router-dom';
 import { addTodo, editTodo, Todo } from '../store/todosSlice';
 import { RootState } from '../store/store';
 
+
+const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
+  value,
+  onChange,
+}) => (
+  <input
+    type="text"
+    className="form-control"
+    placeholder="Title"
+    value={value}
+    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+  />
+);
+
+const DescriptionTextarea: React.FC<{
+  value: string;
+  onChange: (value: string) => void;
+}> = ({ value, onChange }) => (
+  <textarea
+    className="form-control"
+    placeholder="Description"
+    value={value}
+    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+      onChange(e.target.value)
+    }
+  />
+);
+
 const TodoForm: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const history = useNavigate();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const todos = useSelector((state: RootState) => state.todos.todos);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const username = useSelector((state: RootState) => state.auth.username);
-  useEffect(() => {
-    if (id) {
-      const todo = todos.find((todo) => todo.id === id);
-      if (todo) {
-        setTitle(todo.title);
-        setDescription(todo.description);
-      }
-    }
-  }, [id, todos]);
+  const { todos, username } = useSelector((state: RootState) => ({
+    todos: state.todos.todos,
+    username: state.auth.username,
+  }));
+  const [title, setTitle] = useState(() => {
+    const todo = todos.find((todo) => todo.id === id);
+    return todo ? todo.title : '';
+  });
+  const [description, setDescription] = useState(() => {
+    const todo = todos.find((todo) => todo.id === id);
+    return todo ? todo.description : '';
+  });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const todo: Todo = {
-      id: id ? id : Date.now().toString(),
-      title,
-      description,
-      userId: username
-    };
-    if (id) {
-      dispatch(editTodo(todo));
-    } else {
-      dispatch(addTodo(todo));
+  useEffect(() => {
+    if (id && !todos.find((todo) => todo.id === id)) {
+      navigate('/dashboard');
     }
-    history('/dashboard');
-  };
+  }, [id, todos, navigate]);
+
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      const todo: Todo = {
+        id: id ? id : Date.now().toString(),
+        title,
+        description,
+        userId: username,
+      };
+      if (id) {
+        dispatch(editTodo(todo));
+      } else {
+        dispatch(addTodo(todo));
+      }
+      navigate('/dashboard');
+    },
+    [id, title, description, username, dispatch, navigate]
+  );
 
   return (
     <div className="container">
@@ -49,21 +85,13 @@ const TodoForm: React.FC = () => {
               </h1>
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
-                  <input
-                    type="text"
-                    className="form-control"
-                    placeholder="Title"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                  />
+                  <TitleInput value={title} onChange={setTitle} />
                 </div>
                 <div className="mb-3">
-                  <textarea
-                    className="form-control"
-                    placeholder="Description"
+                  <DescriptionTextarea
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                  ></textarea>
+                    onChange={setDescription}
+                  />
                 </div>
                 <div className="text-center">
                   <button type="submit" className="btn btn-primary">

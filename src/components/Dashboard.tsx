@@ -1,28 +1,30 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { RootState } from '../store/store';
 import { logout } from '../store/authSlice';
 import { Todo } from '../store/todosSlice';
 
-const Dashboard: React.FC = () => {
+const Dashboard: React.FC = React.memo(() => {
   const todos = useSelector((state: RootState) => state.todos.todos);
-  const isAuthenticated = useSelector(
-    (state: RootState) => state.auth.isAuthenticated
-  );
-  const username = useSelector((state: RootState) => state.auth.username);
+  const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated);
+  const { username } = useSelector((state: RootState) => state.auth);
   const dispatch = useDispatch();
   const history = useNavigate();
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     dispatch(logout());
     history('/');
-  };
+  }, [dispatch, history]);
 
-  const handleEditTodo = (id: string) => {
+  const handleEditTodo = useCallback((id: string) => {
     history(`/edit/${id}`);
-  };
-  const filteredTodos = todos.filter((todo: Todo) => todo.userId === username);
+  }, [history]);
+
+  const filteredTodos = React.useMemo(
+    () => todos.filter((todo: Todo) => todo.userId === username),
+    [todos, username]
+  );
 
   return (
     <div className="container">
@@ -89,6 +91,6 @@ const Dashboard: React.FC = () => {
       </div>
     </div>
   );
-};
+});
 
 export default Dashboard;

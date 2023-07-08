@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { login } from '../store/authSlice';
 import { Link, useNavigate } from 'react-router-dom';
@@ -6,24 +6,31 @@ import usersData from '../users.json';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faLock } from '@fortawesome/free-solid-svg-icons';
 
-const Login: React.FC = () => {
+const validateUser = (username: string, password: string): boolean => {
+  const foundUser = usersData.users.find(
+    (user: any) => user.username === username && user.password === password
+  );
+  return !!foundUser;
+};
+
+const Login: React.FC = React.memo(() => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const foundUser = usersData.users.find(
-      (user: any) => user.username === username && user.password === password
-    );
-    if (foundUser) {
-      dispatch(login({ username } as any));
-      navigate('/dashboard');
-    } else {
-      alert('Invalid username or password');
-    }
-  };
+  const handleSubmit = useCallback(
+    (e: React.FormEvent) => {
+      e.preventDefault();
+      if (validateUser(username, password)) {
+        dispatch(login({ username } as any));
+        navigate('/dashboard');
+      } else {
+        alert('Invalid username or password');
+      }
+    },
+    [dispatch, navigate, username, password]
+  );
 
   return (
     <div className="container">
@@ -43,7 +50,9 @@ const Login: React.FC = () => {
                       className="form-control"
                       placeholder="Username"
                       value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setUsername(e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -57,7 +66,9 @@ const Login: React.FC = () => {
                       className="form-control"
                       placeholder="Password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                        setPassword(e.target.value)
+                      }
                     />
                   </div>
                 </div>
@@ -67,15 +78,12 @@ const Login: React.FC = () => {
                   </button>
                 </div>
               </form>
-              <div className="text-center mt-3">
-                Don't have an account? <Link to="/register">Register</Link>
-              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   );
-};
+});
 
 export default Login;
