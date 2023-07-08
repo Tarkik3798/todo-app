@@ -4,32 +4,33 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { addTodo, editTodo, Todo } from '../store/todosSlice';
 import { RootState } from '../store/store';
 
-
 const TitleInput: React.FC<{ value: string; onChange: (value: string) => void }> = ({
   value,
   onChange,
 }) => (
-  <input
-    type="text"
-    className="form-control"
-    placeholder="Title"
-    value={value}
-    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
-  />
+  <div>
+    <input
+      type="text"
+      className="form-control"
+      placeholder="Title"
+      value={value}
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
+    />
+  </div>
 );
 
 const DescriptionTextarea: React.FC<{
   value: string;
   onChange: (value: string) => void;
 }> = ({ value, onChange }) => (
-  <textarea
-    className="form-control"
-    placeholder="Description"
-    value={value}
-    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-      onChange(e.target.value)
-    }
-  />
+  <div>
+    <textarea
+      className="form-control"
+      placeholder="Description"
+      value={value}
+      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => onChange(e.target.value)}
+    />
+  </div>
 );
 
 const TodoForm: React.FC = () => {
@@ -48,6 +49,8 @@ const TodoForm: React.FC = () => {
     const todo = todos.find((todo) => todo.id === id);
     return todo ? todo.description : '';
   });
+  const [titleError, setTitleError] = useState('');
+  const [descriptionError, setDescriptionError] = useState('');
 
   useEffect(() => {
     if (id && !todos.find((todo) => todo.id === id)) {
@@ -55,9 +58,32 @@ const TodoForm: React.FC = () => {
     }
   }, [id, todos, navigate]);
 
+  const validateForm = () => {
+    let isValid = true;
+    if (title.trim() === '') {
+      setTitleError('Title is required');
+      isValid = false;
+    } else {
+      setTitleError('');
+    }
+
+    if (description.trim() === '') {
+      setDescriptionError('Description is required');
+      isValid = false;
+    } else {
+      setDescriptionError('');
+    }
+
+    return isValid;
+  };
+
   const handleSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
+      if (!validateForm()) {
+        return;
+      }
+
       const todo: Todo = {
         id: id ? id : Date.now().toString(),
         title,
@@ -80,18 +106,15 @@ const TodoForm: React.FC = () => {
         <div className="col-md-6">
           <div className="card mt-5">
             <div className="card-body">
-              <h1 className="card-title text-center">
-                {id ? 'Edit Todo' : 'Add Todo'}
-              </h1>
+              <h1 className="card-title text-center">{id ? 'Edit Todo' : 'Add Todo'}</h1>
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">
                   <TitleInput value={title} onChange={setTitle} />
+                  {titleError && <div className="text-danger">{titleError}</div>}
                 </div>
                 <div className="mb-3">
-                  <DescriptionTextarea
-                    value={description}
-                    onChange={setDescription}
-                  />
+                  <DescriptionTextarea value={description} onChange={setDescription} />
+                  {descriptionError && <div className="text-danger">{descriptionError}</div>}
                 </div>
                 <div className="text-center">
                   <button type="submit" className="btn btn-primary">
@@ -108,3 +131,4 @@ const TodoForm: React.FC = () => {
 };
 
 export default TodoForm;
+  
